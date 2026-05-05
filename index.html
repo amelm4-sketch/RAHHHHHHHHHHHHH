@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bender">
+<meta name="theme-color" content="#0f0f0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>Conduit Bender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222;
+  --border: #2e2e2e;
+  --orange: #ff6a00;
+  --orange-dim: #c45000;
+  --red: #e83030;
+  --text: #e8e8e0;
+  --muted: #888;
+  --mono: 'Share Tech Mono', monospace;
+  --cond: 'Barlow Condensed', sans-serif;
+  --body: 'Barlow', sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; background: var(--bg); }
+body {
+  min-height: 100%; background: var(--bg); color: var(--text);
+  font-family: var(--body); font-size: 16px;
+  padding-top: calc(var(--safe-top) + 0px);
+  padding-bottom: calc(var(--safe-bottom) + 60px);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding-top: var(--safe-top);
+  display: flex;
+}
+.nav-tab {
+  flex: 1; padding: 14px 8px; text-align: center;
+  font-family: var(--cond); font-size: 13px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); cursor: pointer; border: none;
+  background: none; transition: color .15s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.nav-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+/* PAGE LAYOUT */
+.page { display: none; padding: calc(var(--safe-top) + 56px) 0 16px; }
+.page.active { display: block; }
+
+/* SECTION LABEL */
+.slabel {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .15em;
+  color: var(--muted); text-transform: uppercase;
+  padding: 0 16px; margin-bottom: 8px;
+}
+
+/* CONDUIT SIZE SCROLL */
+.size-scroll { display: flex; gap: 8px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; }
+.size-scroll::-webkit-scrollbar { display: none; }
+.size-chip {
+  flex-shrink: 0; padding: 8px 14px;
+  font-family: var(--mono); font-size: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; transition: all .12s;
+  white-space: nowrap;
+}
+.size-chip.active {
+  background: var(--orange); border-color: var(--orange);
+  color: #000; font-weight: 600;
+}
+
+/* BEND TYPE GRID */
+.bend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px; margin-bottom: 20px; }
+.bend-btn {
+  padding: 16px 12px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; text-align: left; transition: all .12s;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bend-btn .bb-icon { font-size: 20px; line-height: 1; }
+.bend-btn .bb-label { font-family: var(--cond); font-size: 15px; font-weight: 700; letter-spacing: .04em; color: var(--text); }
+.bend-btn .bb-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.bend-btn.active { border-color: var(--orange); background: rgba(255,106,0,.08); }
+.bend-btn.active .bb-label { color: var(--orange); }
+
+/* INPUTS CARD */
+.inputs-card { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.input-row {
+  display: flex; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.input-row:last-child { border-bottom: none; }
+.input-label { font-family: var(--cond); font-size: 14px; font-weight: 600; color: var(--muted); flex: 1; letter-spacing: .03em; }
+.input-unit { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.input-row input[type=number] {
+  width: 80px; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 18px;
+  padding: 8px 10px; text-align: right; -moz-appearance: textfield;
+}
+.input-row input[type=number]::-webkit-inner-spin-button,
+.input-row input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.input-row input:focus { outline: none; border-color: var(--orange); }
+.input-row select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 13px;
+  padding: 8px 10px;
+}
+.input-row select:focus { outline: none; border-color: var(--orange); }
+.slider-wrap { flex: 1; display: flex; align-items: center; gap: 10px; }
+input[type=range] {
+  flex: 1; -webkit-appearance: none; height: 3px;
+  background: var(--border); outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px;
+  background: var(--orange); border-radius: 50%; cursor: pointer;
+}
+.range-val { font-family: var(--mono); font-size: 14px; color: var(--orange); min-width: 36px; text-align: right; }
+
+/* RESULTS */
+.results-card { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.result-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 13px 16px; border-bottom: 1px solid var(--border);
+}
+.result-row:last-child { border-bottom: none; }
+.result-label { font-family: var(--cond); font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: .03em; }
+.result-val { font-family: var(--mono); font-size: 16px; color: var(--text); }
+.result-val.key { font-size: 26px; color: var(--orange); }
+
+/* WARNING / INFO */
+.info-box, .warn-box {
+  margin: 0 16px 20px; padding: 12px 14px;
+  font-family: var(--body); font-size: 13px; line-height: 1.5;
+  border-left: 3px solid;
+}
+.info-box { border-color: #3b82f6; background: rgba(59,130,246,.08); color: #93c5fd; }
+.warn-box { border-color: var(--red); background: rgba(232,48,48,.08); color: #fca5a5; }
+
+/* DIAGRAM */
+.diagram-wrap { margin: 0 16px 20px; background: var(--surface); border: 1px solid var(--border); padding: 4px; }
+canvas { display: block; width: 100%; height: 220px; }
+
+/* REFERENCE */
+.ref-section { margin-bottom: 24px; }
+.ref-table { width: 100%; border-collapse: collapse; }
+.ref-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .15em;
+  color: var(--muted); text-transform: uppercase; text-align: left;
+  padding: 8px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.ref-table td {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  font-family: var(--body); font-size: 14px;
+}
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table .val { font-family: var(--mono); color: var(--orange); text-align: right; }
+.ref-table tr { background: var(--surface); }
+.ref-table tr:nth-child(even) { background: var(--surface2); }
+.tip-list { list-style: none; }
+.tip-list li {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.5; color: #bbb;
+  background: var(--surface);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.tip-list li:last-child { border-bottom: none; }
+.tip-icon { color: var(--orange); flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* BOTTOM TAB BAR */
+.tab-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg); border-top: 1px solid var(--border);
+  display: flex; padding-bottom: var(--safe-bottom);
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 8px; cursor: pointer; border: none; background: none;
+  color: var(--muted); font-family: var(--cond); font-size: 10px;
+  font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  transition: color .15s;
+}
+.tab-item svg { width: 22px; height: 22px; }
+.tab-item.active { color: var(--orange); }
+
+/* INSTALL BANNER */
+#install-banner {
+  display: none; margin: 0 16px 16px;
+  background: rgba(255,106,0,.12); border: 1px solid rgba(255,106,0,.3);
+  padding: 12px 14px; font-size: 13px; color: var(--text);
+  line-height: 1.5; align-items: center; gap: 10px;
+}
+#install-banner.show { display: flex; }
+#install-banner strong { color: var(--orange); }
+#install-close { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
+</style>
+</head>
+<body>
+
+<!-- BOTTOM TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-item active" onclick="showPage('calc')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+    Bender
+  </button>
+  <button class="tab-item" onclick="showPage('ref')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    Reference
+  </button>
+</div>
+
+<!-- CALCULATOR PAGE -->
+<div class="page active" id="page-calc">
+
+  <div id="install-banner">
+    <span>📲 <strong>Add to Home Screen</strong> in Safari → Share → Add to Home Screen for offline use.</span>
+    <button id="install-close" onclick="document.getElementById('install-banner').classList.remove('show')">×</button>
+  </div>
+
+  <div class="slabel">Conduit Size</div>
+  <div class="size-scroll" id="size-scroll"></div>
+
+  <div class="slabel">Bend Type</div>
+  <div class="bend-grid" id="bend-grid"></div>
+
+  <div class="slabel">Inputs</div>
+  <div class="inputs-card" id="inputs-card"></div>
+
+  <div class="diagram-wrap"><canvas id="diagram" height="180"></canvas></div>
+
+  <div class="slabel">Results</div>
+  <div class="results-card" id="results-card"></div>
+
+  <div id="notes-area"></div>
+
+</div>
+
+<!-- REFERENCE PAGE -->
+<div class="page" id="page-ref">
+  <div class="ref-section">
+    <table class="ref-table">
+      <thead><tr><th>Size</th><th>Type</th><th class="val">Gain</th></tr></thead>
+      <tbody>
+        <tr><td>½″</td><td>EMT</td><td class="val">5″</td></tr>
+        <tr><td>¾″</td><td>EMT</td><td class="val">6″</td></tr>
+        <tr><td>1″</td><td>EMT</td><td class="val">8″</td></tr>
+        <tr><td>1¼″</td><td>EMT</td><td class="val">11″</td></tr>
+        <tr><td>1½″</td><td>EMT</td><td class="val">14″</td></tr>
+        <tr><td>2″</td><td>EMT</td><td class="val">19″</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slabel">Offset Multipliers</div>
+  <div class="ref-section">
+    <table class="ref-table">
+      <thead><tr><th>Angle</th><th>Multiplier</th><th class="val">Shrink/in</th></tr></thead>
+      <tbody>
+        <tr><td>10°</td><td>× 5.76</td><td class="val">3/16″</td></tr>
+        <tr><td>22.5°</td><td>× 2.6</td><td class="val">3/16″</td></tr>
+        <tr><td>30°</td><td>× 2.0</td><td class="val">1/4″</td></tr>
+        <tr><td>45°</td><td>× 1.414</td><td class="val">3/8″</td></tr>
+        <tr><td>60°</td><td>× 1.155</td><td class="val">1/2″</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slabel">Tips</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon">▸</span>Always measure from the conduit end, not from the bender itself.</li>
+    <li><span class="tip-icon">▸</span>Both offset bends must be equal in angle and opposite in direction.</li>
+    <li><span class="tip-icon">▸</span>Add 1–3° for springback — conduit relaxes slightly after bending.</li>
+    <li><span class="tip-icon">▸</span>Keep your shoe arrow pointing toward the direction of the bend.</li>
+    <li><span class="tip-icon">▸</span>For 3-pt saddle: bend center (45°) first, then flip and bend outers (22.5°).</li>
+    <li><span class="tip-icon">▸</span>Deduct the shrinkage from your total run length for offsets.</li>
+  </ul>
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────
+const SIZES = [
+  {label:'½″ EMT', gain:5},
+  {label:'¾″ EMT', gain:6},
+  {label:'1″ EMT',  gain:8},
+  {label:'1¼″ EMT',gain:11},
+  {label:'1½″ EMT',gain:14},
+  {label:'2″ EMT',  gain:19},
+];
+const BENDS = [
+  {id:'stub',  icon:'↱', label:'Stub',    sub:'90° bend'},
+  {id:'offset',icon:'∿', label:'Offset',  sub:'parallel shift'},
+  {id:'saddle',icon:'⌇', label:'Saddle',  sub:'3-point'},
+  {id:'back90',icon:'⊓', label:'Back-to-Back', sub:'U shape'},
+];
+const ANGLES = [
+  {deg:10,   mult:5.76,  shrink:3/16},
+  {deg:22.5, mult:2.6,   shrink:3/16},
+  {deg:30,   mult:2.0,   shrink:1/4},
+  {deg:45,   mult:1.414, shrink:3/8},
+  {deg:60,   mult:1.155, shrink:1/2},
+];
+
+// ── State ──────────────────────────────────────────────
+let state = {
+  sizeIdx: 2,
+  bend: 'stub',
+  stubH: 12, stubAngle: 90,
+  offRise: 6, offAngleIdx: 2,
+  sadRise: 4, sadCenter: 18,
+  backStub: 12, backDist: 24,
+};
+
+// ── Helpers ────────────────────────────────────────────
+function fmt(v) {
+  const r = Math.round(v * 8) / 8;
+  const w = Math.floor(r);
+  const f = r - w;
+  const e = Math.round(f * 8);
+  if (e === 0) return `${w}`;
+  if (e === 8) return `${w+1}`;
+  const g = gcd(e,8), n=e/g, d=8/g;
+  return w > 0 ? `${w} ${n}/${d}` : `${n}/${d}`;
+}
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+function gain() { return SIZES[state.sizeIdx].gain; }
+
+// ── Render UI ──────────────────────────────────────────
+function renderSizes() {
+  const el = document.getElementById('size-scroll');
+  el.innerHTML = SIZES.map((s,i) =>
+    `<button class="size-chip${i===state.sizeIdx?' active':''}" onclick="pick('size',${i})">${s.label}</button>`
+  ).join('');
+}
+function renderBends() {
+  const el = document.getElementById('bend-grid');
+  el.innerHTML = BENDS.map(b =>
+    `<button class="bend-btn${b.id===state.bend?' active':''}" onclick="pick('bend','${b.id}')">
+      <span class="bb-icon">${b.icon}</span>
+      <span class="bb-label">${b.label}</span>
+      <span class="bb-sub">${b.sub}</span>
+    </button>`
+  ).join('');
+}
+function renderInputs() {
+  const el = document.getElementById('inputs-card');
+  let html = '';
+  if (state.bend === 'stub') {
+    html = `
+      <div class="input-row">
+        <span class="input-label">Stub Height</span>
+        <input type="number" inputmode="decimal" id="in-stubH" value="${state.stubH}" min="1" step="0.5" onchange="sv('stubH',this.value)">
+        <span class="input-unit">in</span>
+      </div>
+      <div class="input-row">
+        <span class="input-label">Angle</span>
+        <div class="slider-wrap">
+          <input type="range" id="in-stubAngle" min="10" max="90" step="1" value="${state.stubAngle}" oninput="sv('stubAngle',this.value);document.getElementById('stubAngle-val').textContent=this.value+'°'">
+          <span class="range-val" id="stubAngle-val">${state.stubAngle}°</span>
+        </div>
+      </div>`;
+  } else if (state.bend === 'offset') {
+    html = `
+      <div class="input-row">
+        <span class="input-label">Rise</span>
+        <input type="number" inputmode="decimal" id="in-offRise" value="${state.offRise}" min="0.5" step="0.5" onchange="sv('offRise',this.value)">
+        <span class="input-unit">in</span>
+      </div>
+      <div class="input-row">
+        <span class="input-label">Angle</span>
+        <select onchange="sv('offAngleIdx',this.value)">${ANGLES.map((a,i)=>`<option value="${i}"${i===state.offAngleIdx?' selected':''}>${a.deg}°</option>`).join('')}</select>
+      </div>`;
+  } else if (state.bend === 'saddle') {
+    html = `
+      <div class="input-row">
+        <span class="input-label">Obstruction Height</span>
+        <input type="number" inputmode="decimal" value="${state.sadRise}" min="0.5" step="0.5" onchange="sv('sadRise',this.value)">
+        <span class="input-unit">in</span>
+      </div>
+      <div class="input-row">
+        <span class="input-label">Center of Obstruction</span>
+        <input type="number" inputmode="decimal" value="${state.sadCenter}" min="1" step="0.5" onchange="sv('sadCenter',this.value)">
+        <span class="input-unit">in</span>
+      </div>`;
+  } else {
+    html = `
+      <div class="input-row">
+        <span class="input-label">First Stub Height</span>
+        <input type="number" inputmode="decimal" value="${state.backStub}" min="1" step="0.5" onchange="sv('backStub',this.value)">
+        <span class="input-unit">in</span>
+      </div>
+      <div class="input-row">
+        <span class="input-label">Back-to-Back Distance</span>
+        <input type="number" inputmode="decimal" value="${state.backDist}" min="1" step="0.5" onchange="sv('backDist',this.value)">
+        <span class="input-unit">in</span>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ── Calc & Results ─────────────────────────────────────
+function calcResults() {
+  const g = gain();
+  let rows = [], notes = '', warn = '';
+  if (state.bend === 'stub') {
+    const mark = state.stubH - g;
+    rows = [
+      {label:'Stub Height', val:fmt(state.stubH)+' in', key:false},
+      {label:'Gain', val:fmt(g)+' in', key:false},
+      {label:'Mark At', val:fmt(mark)+' in', key:true},
+    ];
+    if (mark < 2) warn = 'Mark too close to end — increase stub height.';
+    notes = `Place hook at conduit end. Align the ${g}" gain arrow on bender shoe. Bend to ${state.stubAngle}°.`;
+  } else if (state.bend === 'offset') {
+    const a = ANGLES[state.offAngleIdx];
+    const spread = state.offRise * a.mult;
+    const shrink = state.offRise * a.shrink;
+    rows = [
+      {label:'Rise', val:fmt(state.offRise)+' in', key:false},
+      {label:'Angle', val:a.deg+'°', key:false},
+      {label:'Spread', val:fmt(spread)+' in', key:true},
+      {label:'Shrinkage', val:fmt(shrink)+' in', key:false},
+    ];
+    notes = `Mark 1st bend. Measure ${fmt(spread)}" and mark 2nd bend. Both bends ${a.deg}°. Deduct ${fmt(shrink)}" from run length.`;
+  } else if (state.bend === 'saddle') {
+    const os = state.sadRise * 2.5;
+    const m1 = state.sadCenter - os/2;
+    const m2 = state.sadCenter;
+    const m3 = state.sadCenter + os/2;
+    if (m1 < 1) warn = 'First mark too close to end — increase center distance.';
+    rows = [
+      {label:'1st Mark (22.5°)', val:fmt(m1)+' in', key:true},
+      {label:'2nd Mark (45°)', val:fmt(m2)+' in', key:true},
+      {label:'3rd Mark (22.5°)', val:fmt(m3)+' in', key:true},
+      {label:'Outer Spread', val:fmt(os)+' in', key:false},
+    ];
+    notes = 'Bend center (45°) first. Flip conduit. Bend outer marks to 22.5° each.';
+  } else {
+    const m1 = state.backStub - g;
+    const m2 = m1 + state.backDist;
+    rows = [
+      {label:'First Mark', val:fmt(m1)+' in', key:true},
+      {label:'Second Mark', val:fmt(m2)+' in', key:true},
+      {label:'Distance', val:fmt(state.backDist)+' in', key:false},
+    ];
+    notes = 'Bend 1st 90° at mark 1. Flip bender. Bend 2nd 90° at mark 2. Same direction.';
+  }
+  const el = document.getElementById('results-card');
+  el.innerHTML = rows.map(r =>
+    `<div class="result-row"><span class="result-label">${r.label}</span><span class="result-val${r.key?' key':''}">${r.val}</span></div>`
+  ).join('');
+  const na = document.getElementById('notes-area');
+  na.innerHTML = (warn ? `<div class="warn-box">⚠ ${warn}</div>` : '') +
+    (notes ? `<div class="info-box">ℹ ${notes}</div>` : '');
+}
+
+// ── Canvas Diagram ─────────────────────────────────────
+function drawDiagram() {
+  const canvas = document.getElementById('diagram');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const H = 220; // taller canvas so labels never clip
+  canvas.width = w * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, H);
+
+  const orange = '#ff6a00', red = '#e83030', dim = '#666';
+  const lw = 5;
+  const PAD = 18; // horizontal padding
+  const LABEL_H = 42; // pixels reserved at bottom for labels
+  const TOP_PAD = 16; // pixels reserved at top
+
+  function line(x1,y1,x2,y2,color,width,dash) {
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+    ctx.strokeStyle=color; ctx.lineWidth=width||lw; ctx.lineCap='round';
+    ctx.setLineDash(dash||[]); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function label(text,x,y,color,size) {
+    ctx.font=`bold ${size||11}px 'Share Tech Mono',monospace`;
+    ctx.fillStyle=color||dim; ctx.textAlign='center';
+    ctx.fillText(text,x,y);
+  }
+  function markLine(mx, baseY, labelText, labelColor) {
+    line(mx, baseY - 14, mx, baseY + 22, labelColor||red, 1.5, [5,4]);
+    label(labelText, mx, baseY + 36, labelColor||red, 10);
+  }
+
+  const g = gain();
+  const drawW = w - PAD*2;
+  const maxPipeY = H - LABEL_H; // bottom of pipe drawing zone
+  const pipeZoneH = maxPipeY - TOP_PAD; // total height for pipe
+
+  if (state.bend === 'stub') {
+    const h = state.stubH, mark = h - g;
+    // horizontal run takes left 60%, stub takes right side going up
+    const runEndX = PAD + drawW * 0.62;
+    const baseY = TOP_PAD + pipeZoneH * 0.62;
+    const stubH = Math.min(pipeZoneH * 0.85, baseY - TOP_PAD - 4);
+    const markX = PAD + (mark / Math.max(h, 0.01)) * (runEndX - PAD);
+
+    line(PAD, baseY, runEndX, baseY, orange);
+    line(runEndX, baseY, runEndX, baseY - stubH, orange);
+    markLine(markX, baseY, `MARK ${fmt(mark)}"`, red);
+    label(`STUB ${fmt(h)}"`, runEndX + 28, baseY - stubH/2, dim, 10);
+    // small arrow at stub top
+    line(runEndX - 8, baseY - stubH + 8, runEndX, baseY - stubH, orange, 2);
+    line(runEndX + 8, baseY - stubH + 8, runEndX, baseY - stubH, orange, 2);
+
+  } else if (state.bend === 'offset') {
+    const a = ANGLES[state.offAngleIdx];
+    const rise = state.offRise, spread = rise * a.mult;
+    // layout: small lead-in | diagonal up | top run
+    const baseY = H - LABEL_H - 4;
+    const topY = TOP_PAD + 20;
+    const riseH = baseY - topY;
+    // scale spread to fit
+    const spreadPx = Math.min(drawW * 0.55, drawW - 80);
+    const leadIn = 24, leadOut = 24;
+    const m1x = PAD + leadIn;
+    const m2x = m1x + spreadPx;
+    const endX = Math.min(m2x + leadOut, w - PAD);
+
+    line(PAD, baseY, m1x, baseY, orange);
+    line(m1x, baseY, m2x, topY, orange);
+    line(m2x, topY, endX, topY, orange);
+    markLine(m1x, baseY, 'M1', red);
+    // M2 label above the line
+    line(m2x, topY - 14, m2x, topY + 22, red, 1.5, [5,4]);
+    label('M2', m2x, topY - 18, red, 10);
+    label(`SPREAD ${fmt(spread)}"`, (m1x+m2x)/2, (baseY+topY)/2 - 10, dim, 10);
+    label(`RISE ${fmt(rise)}"`, m2x + 28, (baseY+topY)/2, dim, 10);
+
+  } else if (state.bend === 'saddle') {
+    const rise = state.sadRise, os = rise * 2.5;
+    const baseY = H - LABEL_H - 4;
+    const topY = TOP_PAD + 18;
+    const riseH = baseY - topY;
+    // spread the three marks evenly across available width
+    const spreadPx = drawW * 0.72;
+    const originX = PAD + (drawW - spreadPx) / 2;
+    const m1x = originX;
+    const m2x = originX + spreadPx / 2;
+    const m3x = originX + spreadPx;
+    const peakOff = riseH * 0.22; // how wide the flat top is
+
+    line(PAD, baseY, m1x, baseY, orange);
+    line(m1x, baseY, m2x - peakOff, topY, orange);
+    line(m2x - peakOff, topY, m2x + peakOff, topY, orange);
+    line(m2x + peakOff, topY, m3x, baseY, orange);
+    line(m3x, baseY, w - PAD, baseY, orange);
+
+    markLine(m1x, baseY, '22.5°', red);
+    markLine(m2x, baseY, '45°', red);
+    markLine(m3x, baseY, '22.5°', red);
+    label(`RISE ${fmt(rise)}"`, m2x, topY - 8, dim, 10);
+
+  } else { // back-to-back
+    const stub = state.backStub, dist = state.backDist;
+    const m1 = stub - g, m2 = m1 + dist;
+    const baseY = H - LABEL_H - 4;
+    // U shape: lead-in | up | across | down | lead-out
+    const stubHpx = Math.min(pipeZoneH * 0.6, 120);
+    const topY = baseY - stubHpx;
+    const distPx = Math.min(drawW * 0.45, 160);
+    const m1x = PAD + Math.min(drawW * 0.2, 60);
+    const m2x = m1x + distPx;
+
+    line(PAD, baseY, m1x, baseY, orange);
+    line(m1x, baseY, m1x, topY, orange);
+    line(m1x, topY, m2x, topY, orange);
+    line(m2x, topY, m2x, baseY, orange);
+    line(m2x, baseY, Math.min(m2x + 40, w - PAD), baseY, orange);
+
+    markLine(m1x, baseY, `M1 ${fmt(m1)}"`, red);
+    markLine(m2x, baseY, `M2 ${fmt(m2)}"`, red);
+    label(`DIST ${fmt(dist)}"`, (m1x+m2x)/2, topY - 8, dim, 10);
+    label(`STUB ${fmt(stub)}"`, m1x - 30, (baseY+topY)/2, dim, 10);
+  }
+}
+
+// ── Actions ────────────────────────────────────────────
+function pick(type, val) {
+  if (type === 'size') state.sizeIdx = val;
+  if (type === 'bend') state.bend = val;
+  renderAll();
+}
+function sv(key, val) {
+  state[key] = parseFloat(val) || 0;
+  calcResults(); drawDiagram();
+}
+function renderAll() {
+  renderSizes(); renderBends(); renderInputs(); calcResults(); drawDiagram();
+}
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── PWA / Install ──────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (!isStandalone && /iphone|ipad|ipod|android/i.test(navigator.userAgent)) {
+  setTimeout(() => document.getElementById('install-banner').classList.add('show'), 1500);
+}
+
+// ── Init ───────────────────────────────────────────────
+window.addEventListener('resize', drawDiagram);
+renderAll();
+</script>
+</body>
+</html>

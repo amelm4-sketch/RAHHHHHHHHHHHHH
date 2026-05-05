@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" fill="#0f0f0f"/>
+  <rect x="16" y="16" width="160" height="160" fill="none" stroke="#ff6a00" stroke-width="3" opacity="0.3"/>
+  <!-- Conduit pipe going horizontal then bending up -->
+  <polyline points="24,130 100,130 100,55" fill="none" stroke="#ff6a00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Mark line -->
+  <line x1="70" y1="115" x2="70" y2="148" stroke="#e83030" stroke-width="3" stroke-dasharray="5,4"/>
+  <!-- Label text -->
+  <text x="96" y="176" font-family="monospace" font-size="18" fill="#ff6a00" text-anchor="middle" font-weight="bold">BENDER</text>
+</svg>
